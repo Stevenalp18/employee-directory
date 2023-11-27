@@ -1,8 +1,13 @@
+//imports
 import { useEffect, useState } from "react";
+import { renderCard, renderFilteredResults } from "./utility/functions";
+
+import { filterByLetter } from "./utility/filterFunctions";
+// function App()
 
 function App() {
   const [data, setData] = useState(null);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(null);
   const [filteredResults, setFilteredResults] = useState(null);
 
   useEffect(() => {
@@ -12,7 +17,6 @@ function App() {
           "https://jsonplaceholder.typicode.com/users/"
         );
         const dataResponse = await response.json();
-        // console.log(dataResponse);
         setData(dataResponse);
       } catch (error) {
         setData(null);
@@ -23,147 +27,35 @@ function App() {
     fetchData();
   }, []);
 
-  const filterByName = (name) => {
-    if (data !== null) {
-      const results = data.find(
-        (item) => item.name.toLowerCase() === name.toLowerCase()
-      );
-      if (results) {
-        setFilteredResults(results);
-      } else {
-        setFilteredResults(null);
-      }
-    }
-  };
-
   useEffect(() => {
-    filterByName(name);
+    filterByLetter(data, name, setFilteredResults);
   }, [name]);
 
-  const renderCard = () => {
-    if (data !== null) {
-      const renderData = () => {
-        return data.map((item) => {
-          const {
-            id,
-            name,
-            username,
-            email,
-            phone,
-            address: { street, suite, city, zipcode },
-          } = item;
-          return (
-            <div
-              key={id}
-              className="py-6 px-4 text-center w-auto rounded-2xl flex flex-col gap-6 bg-white"
-            >
-              <div>{name}</div>
-              <div>
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/310px-Placeholder_view_vector.svg.png"
-                  width={100}
-                  height={100}
-                  className="rounded-full m-auto"
-                />
-              </div>
-              <div>Employee ID# {id}</div>
-              <div>Username: {username}</div>
-              <div>
-                Address: <br />
-                {street}, {suite}
-                <br />
-                {city}, {zipcode}
-              </div>
-              <div className="flex flex-row gap-3 justify-center">
-                <div>
-                  <a
-                    href={`mailto:${email}`}
-                    className="material-symbols-outlined"
-                  >
-                    email
-                  </a>
-                </div>
-                <div>
-                  <a
-                    href={`tel:${phone}`}
-                    className="material-symbols-outlined"
-                  >
-                    call
-                  </a>
-                </div>
-              </div>
-            </div>
-          );
-        });
-      };
-      //
-      return renderData();
-    } else if (data == null) {
-      return <div>data is null</div>;
-    }
-  };
-
-  const renderFilteredResults = () => {
-    if (filteredResults !== null) {
-      const {
-        id,
-        name,
-        username,
-        email,
-        phone,
-        address: { street, suite, city, zipcode },
-      } = filteredResults;
-
-      return (
-        <div
-          key={id}
-          className="py-6 px-4 text-center w-auto rounded-2xl flex flex-col gap-6 bg-white"
-        >
-          <div>{name}</div>
-          <div>
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/310px-Placeholder_view_vector.svg.png"
-              width={100}
-              height={100}
-              className="rounded-full m-auto"
-            />
-          </div>
-          <div>Employee ID# {id}</div>
-          <div>Username: {username}</div>
-          <div>
-            Address: <br />
-            {street}, {suite}
-            <br />
-            {city}, {zipcode}
-          </div>
-          <div className="flex flex-row gap-3 justify-center">
-            <div>
-              <a href={`mailto:${email}`} className="material-symbols-outlined">
-                email
-              </a>
-            </div>
-            <div>
-              <a href={`tel:${phone}`} className="material-symbols-outlined">
-                call
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
-  };
-
   useEffect(() => {
-    renderFilteredResults();
+    renderFilteredResults(filteredResults);
   }, [filteredResults]);
 
   const conditionalRender = () => {
-    if (filteredResults) {
-      return renderFilteredResults();
-    } else if (!filteredResults) {
-      return renderCard();
+    if (filteredResults !== null) {
+      if (filteredResults.length === 0) {
+        return (
+          <div className="text-lg p-2 bg-red-300/30 rounded-2xl">
+            Error: No Search Results Found for '{name}'
+          </div>
+        );
+      }
+      return (
+        <div className="flex flex-wrap gap-6 justify-center py-4 text-neutral-900">
+          <div className="w-full text-center mx-auto">
+            Results Found: {filteredResults.length}
+          </div>
+          {renderFilteredResults(filteredResults)}
+        </div>
+      );
     }
+    return renderCard(data);
   };
+
   return (
     <>
       <div className="text-center text-4xl pt-6 text-neutral-800 font-semibold">
@@ -172,29 +64,16 @@ function App() {
       <div className="w-full flex justify-center mt-4">
         <input
           type="text"
-          placeholder="employee name"
+          placeholder="search by employee name"
           className="px-2 py-1 rounded-xl text-lg w-1/3"
           onChange={(e) => {
             setName(e.target.value);
           }}
         />
       </div>
-      {/* <div className="text-center py-2">Current Visual Input: {name}</div>
-      <div className="text-center py-2">
-        Current Filtered Results: <br /> {JSON.stringify(filteredResults)}
-      </div> */}
-
       <div className="flex flex-wrap gap-6 justify-center py-4 text-neutral-900">
-        {/* {filteredResults !== null ? (
-          <> {renderFilteredResults()}</>
-        ) : (
-          renderCard()
-        )} */}
         {conditionalRender()}
       </div>
-      {/* <div className="flex flex-wrap gap-6 justify-center py-4 text-neutral-900">
-        {renderCard()}
-      </div> */}
     </>
   );
 }

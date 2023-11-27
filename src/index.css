@@ -4,4 +4,6 @@
 
 body {
   background: lightgray;
+  max-width: 1400px;
+  margin: auto;
 }
